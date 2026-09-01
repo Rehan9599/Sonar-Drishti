@@ -1,0 +1,8 @@
+# ---- DRISHTI: combined environment (demo laptop / single-env convenience) ----
+# For per-track isolation, prefer backend/requirements.txt, ml/requirements.txt,
+# and edge/requirements.txt separately -- CV/ML deps are heavy and most backend
+# or frontend work never needs torch/ultralytics installed locally.
+
+-r backend/requirements.txt
+-r ml/requirements.txt
+-r edge/requirements.txt

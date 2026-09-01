@@ -1,0 +1,8 @@
+# ---- DRISHTI edge inference service (Tier 0: laptop CPU / Tier 1: Jetson) ----
+
+onnxruntime>=1.18           # swap for onnxruntime-gpu on a Jetson/CUDA target
+numpy>=1.26
+opencv-python-headless>=4.10
+fastapi>=0.111
+uvicorn>=0.30
+pydantic>=2.7

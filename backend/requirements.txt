@@ -1,0 +1,36 @@
+# ---- DRISHTI backend: Django REST API + Channels (WebSocket) + Celery worker ----
+
+# Core framework
+Django>=5.0,<5.3
+djangorestframework>=3.15
+django-cors-headers>=4.4
+
+# Real-time (WebSocket push of live per-tile detections)
+channels>=4.1
+channels-redis>=4.2
+daphne>=4.1                 # ASGI server for Channels
+
+# Async job queue (background inference jobs)
+celery>=5.4
+redis>=5.0
+
+# Database
+psycopg2-binary>=2.9        # PostgreSQL driver
+
+# Geospatial / geotagging
+pyproj>=3.6                 # slant-range -> ground-range / lat-long projection
+shapely>=2.0                # bounding polygon / mask geometry handling
+
+# File & config handling
+python-decouple>=3.8        # .env config management
+Pillow>=10.3                # image handling on the API side
+
+# Serving
+gunicorn>=22.0               # production WSGI (paired with Daphne for the ASGI/WS side)
+
+# Testing
+pytest>=8.2
+pytest-django>=4.8
+
+# Optional but recommended
+drf-spectacular>=0.27       # auto-generated OpenAPI docs for the locked API contract
