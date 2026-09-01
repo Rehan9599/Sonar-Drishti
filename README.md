@@ -11,6 +11,10 @@ DRISHTI ingests a raw side-scan sonar (SSS) log, detects man-made seabed hazards
 > Full technical record — problem → 3 training runs → edge/ONNX → per-module theory & physics
 > with diagrams → literature benchmark → directions: **`docs/PROJECT_RECORD.html`**
 
+**Try it in 2 minutes, no setup:**
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Rehan9599/Sonar-Drishti/blob/main/notebooks/01_quickstart_inference.ipynb)
+— the model and sample tiles are committed, so one `git clone` runs the detector. CPU only.
+
 ---
 
 ## 1. Repository layout
