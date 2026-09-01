@@ -3,7 +3,7 @@
 Only `exported/calibrator.pkl` (2 KB, per-class Platt calibrators) is committed, so
 `ml/inference/pipeline.py` runs after a plain clone.
 
-Everything else is on the Hugging Face model repo *(link in the top-level README)*:
+Everything else is on the Hugging Face model repo — [rehan9599/drishti-detector](https://huggingface.co/rehan9599/drishti-detector):
 
 | File | What |
 |---|---|
@@ -15,6 +15,6 @@ Everything else is on the Hugging Face model repo *(link in the top-level README
 
 Fetch:
 ```bash
-huggingface-cli download <org>/drishti-detector --local-dir ml/models/exported
+hf download rehan9599/drishti-detector --local-dir ml/models/exported
 ```
 Or re-derive: train (`ml/scripts/train_yolo_seg.py`) then `ml/scripts/export_onnx.py`.
