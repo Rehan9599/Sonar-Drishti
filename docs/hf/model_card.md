@@ -9,11 +9,39 @@ tags:
   - yolov8
   - onnx
   - edge-ai
-library_name: ultralytics
 pipeline_tag: object-detection
 ---
 
+<!-- NOTE: `library_name: ultralytics` is deliberately NOT set. It makes the Hub emit an
+     auto-generated snippet (`YOLOvv8.from_pretrained(...)`) that does not work for this repo —
+     wrong class name, no from_pretrained support for this file layout, a COCO cat photo as the
+     input, and it would skip preprocessing + calibration. Use the quickstart below instead. -->
+
 # DRISHTI — marine-debris detector for side-scan sonar
+
+## ▶ Start here
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/Rehan9599/Sonar-Drishti/blob/main/notebooks/01_quickstart_inference.ipynb)
+
+Runs in ~2 minutes, CPU only, no PyTorch and no account needed:
+
+```bash
+pip install onnxruntime opencv-python-headless numpy scikit-learn
+git clone https://github.com/Rehan9599/Sonar-Drishti.git && cd Sonar-Drishti
+```
+```python
+from edge.edge_infer import run
+run("demo/tiles/synth_ghost_net_00002.jpg", preprocess=False)
+# -> {'class_label': 'ghost_net', 'confidence_score': 95.3, 'review_status': 'auto_confirmed', ...}
+```
+
+The weights are committed to that repo, so the clone is the whole setup — sample tiles included.
+
+> **Do not just call `model.predict()` on a raw image.** Three things break silently:
+> the model needs **Lee + CLAHE** preprocessing (it was trained that way), the **Module 2**
+> per-class gate + calibration is what produces the honest 0–100 % score, and **coordinates**
+> require an XTF/navigation log. `run()` and `run_pipeline()` handle all three.
+
 
 YOLOv8s fine-tuned to detect man-made seabed hazards in **side-scan sonar (SSS)** imagery.
 Built for Smart India Hackathon 2026, Problem Statement 26057 (Ministry of Earth Sciences / NIOT).
