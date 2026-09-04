@@ -24,12 +24,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from backend.geotagging.coordinate_projection import SwathGeometry, project_detection
-from backend.geotagging.metadata_parser import NavigationTable, PingIndex
-from backend.geotagging.xtf_reader import XtfNav
-from backend.reporting.csv_export import write_csv
-from backend.reporting.json_export import write_json, write_geojson
-from backend.reporting.schema import DetectionRecord, new_job_id, iso, REVIEW_FLOOR
+from ml.geotagging.coordinate_projection import SwathGeometry, project_detection
+from ml.geotagging.metadata_parser import NavigationTable, PingIndex
+from ml.geotagging.xtf_reader import XtfNav
+from ml.reporting.csv_export import write_csv
+from ml.reporting.json_export import write_json, write_geojson
+from ml.reporting.schema import DetectionRecord, new_job_id, iso, REVIEW_FLOOR
 
 AURORA = Path(__file__).resolve().parents[2] / "ml" / "data" / "raw" / "AURORA-SSS" / "side-scan-sonar"
 DEFAULT_MAX_SLANT_M = 50.0     # AURORA JC125/M87 swath edge, approx; overridden by XTF
