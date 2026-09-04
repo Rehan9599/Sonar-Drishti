@@ -54,3 +54,7 @@ build/
 *.log
 .idea/
 .vscode/
+
+# uploaded sonar files + generated reports (runtime, never committed)
+apps/api/media/
+apps/api/staticfiles/

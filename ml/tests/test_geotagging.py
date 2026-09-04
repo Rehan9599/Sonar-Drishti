@@ -6,11 +6,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from backend.geotagging.coordinate_projection import (
+from ml.geotagging.coordinate_projection import (
     SwathGeometry, slant_to_ground, column_to_across_track,
     _destination, project_detection,
 )
-from backend.reporting.schema import review_status, DetectionRecord
+from ml.reporting.schema import review_status, DetectionRecord
 
 M_PER_DEG_LAT = 111_320.0
 

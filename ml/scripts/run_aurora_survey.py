@@ -33,10 +33,10 @@ from ml.inference.detector import SonarDetector
 from ml.inference.confidence_filter import ConfidenceFilter
 from ml.inference.preprocess import despeckle_clahe
 from ml.inference.pipeline import _resolve_geometry, DEFAULT_MODEL, DEFAULT_CALIBRATOR
-from backend.geotagging.run_geotag import geotag
-from backend.reporting.json_export import write_json, write_geojson
-from backend.reporting.csv_export import write_csv
-from backend.reporting.schema import new_job_id
+from ml.geotagging.run_geotag import geotag
+from ml.reporting.json_export import write_json, write_geojson
+from ml.reporting.csv_export import write_csv
+from ml.reporting.schema import new_job_id
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)

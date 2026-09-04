@@ -29,12 +29,12 @@ sys.path.insert(0, str(_ROOT))
 from ml.inference.detector import SonarDetector
 from ml.inference.confidence_filter import ConfidenceFilter
 from ml.inference.preprocess import despeckle_clahe
-from backend.geotagging.run_geotag import geotag, DEFAULT_MAX_SLANT_M
-from backend.geotagging.metadata_parser import NavigationTable
-from backend.geotagging.xtf_reader import XtfNav
-from backend.reporting.json_export import write_json, write_geojson
-from backend.reporting.csv_export import write_csv
-from backend.reporting.schema import new_job_id
+from ml.geotagging.run_geotag import geotag, DEFAULT_MAX_SLANT_M
+from ml.geotagging.metadata_parser import NavigationTable
+from ml.geotagging.xtf_reader import XtfNav
+from ml.reporting.json_export import write_json, write_geojson
+from ml.reporting.csv_export import write_csv
+from ml.reporting.schema import new_job_id
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
