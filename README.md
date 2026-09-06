@@ -138,7 +138,7 @@ Everything else is training-only and lives outside git:
 | Asset | Where | How to get it |
 |---|---|---|
 | `.pt` backups, FP16/INT8 ONNX, per-epoch checkpoints (3.4 GB) | [`rehan9599/drishti-detector`](https://huggingface.co/rehan9599/drishti-detector) | `hf download rehan9599/drishti-detector` |
-| Training splits (2.1 GB, preprocessed) | [`rehan9599/drishti-sss`](https://huggingface.co/datasets/rehan9599/drishti-sss) *(private)* | `hf download rehan9599/drishti-sss --repo-type dataset --local-dir ml/data/splits` |
+| Training splits — 5,205 tiles, preprocessed, **CC-BY-SA-4.0** | [`rehan9599/drishti-sss`](https://huggingface.co/datasets/rehan9599/drishti-sss) *(public; `crab_pot` excluded — see its card)* | `hf download rehan9599/drishti-sss --repo-type dataset --local-dir ml/data/splits` |
 | Raw source datasets (32 GB) | not hosted — reconstructible | public sources in `PROJECT_RECORD.html` §15 + `ml/scripts/tile_*.py` + `build_dataset.py` |
 
 Module 4 and the edge service need **none** of the above — only the three committed files.
