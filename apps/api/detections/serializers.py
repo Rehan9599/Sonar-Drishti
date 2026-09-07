@@ -6,7 +6,7 @@ from .models import AuditLogEntry, Detection, DetectionJob
 class DetectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Detection
-        fields = "__all__"
+        exclude = ("job", "created_at")
 
 
 class AuditLogEntrySerializer(serializers.ModelSerializer):
@@ -16,18 +16,9 @@ class AuditLogEntrySerializer(serializers.ModelSerializer):
 
 
 class DetectionJobSerializer(serializers.ModelSerializer):
-    detections = DetectionSerializer(many=True, read_only=True)
+    detection_count = serializers.IntegerField(source="detections.count", read_only=True)
 
     class Meta:
         model = DetectionJob
-        fields = [
-            "id",
-            "input_path",
-            "status",
-            "progress",
-            "error_message",
-            "created_at",
-            "started_at",
-            "completed_at",
-            "detections",
-        ]
+        fields = ("id", "source_file", "status", "progress", "error_message",
+                  "created_at", "started_at", "completed_at", "detection_count")
