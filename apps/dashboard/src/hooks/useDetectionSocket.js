@@ -7,7 +7,7 @@ import { connectToJob } from "../websocket";
 export function useDetectionSocket(jobId) {
   const [detections, setDetections] = useState([]);
   const [tilesDone, setTilesDone] = useState(0);
-  const [status, setStatus] = useState("idle");
+  const [status, setStatus] = useState("idle");   // idle | live | complete | failed
   const [error, setError] = useState(null);
   const sockRef = useRef(null);
 

@@ -3,9 +3,7 @@ export function connectToJob(jobId, handlers = {}) {
     import.meta.env.VITE_WS_BASE ||
     `${window.location.protocol === "https:" ? "wss" : "ws"}://${window.location.host}`;
 
-  const socket = new WebSocket(
-    `${base}/ws/jobs/${jobId}/`
-  );
+  const socket = new WebSocket(`${base}/ws/jobs/${jobId}/`);
 
   socket.onopen = () => {
     handlers.onOpen?.();
@@ -15,24 +13,17 @@ export function connectToJob(jobId, handlers = {}) {
     try {
       const data = JSON.parse(event.data);
 
-      console.log("WebSocket message:", data);
-
       if (data.type === "detection.partial") {
         handlers.onPartial?.(data);
       }
-
       if (data.type === "detection.complete") {
         handlers.onComplete?.(data);
       }
-
       if (data.type === "detection.failed") {
         handlers.onFailed?.(data);
       }
     } catch (error) {
-      console.error(
-        "Failed to parse WebSocket message:",
-        error
-      );
+      console.error("Failed to parse WebSocket message:", error);
     }
   };
 
@@ -41,8 +32,7 @@ export function connectToJob(jobId, handlers = {}) {
     handlers.onError?.(error);
   };
 
-  socket.onclose = (event) => {
-    console.log("WebSocket closed:", event.code);
+  socket.onclose = () => {
     handlers.onClose?.();
   };
 

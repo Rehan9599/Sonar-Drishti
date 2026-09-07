@@ -16,6 +16,7 @@ export default function LiveFeedPage() {
     return () => clearInterval(t);
   }, [jobId]);
 
+  // once the job finishes, take the authoritative list from the DB
   useEffect(() => {
     if (status === "complete") getDetections(jobId).then(setSettled).catch(() => {});
   }, [status, jobId]);
