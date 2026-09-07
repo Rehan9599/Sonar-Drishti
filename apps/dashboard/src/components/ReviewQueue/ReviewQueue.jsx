@@ -1,9 +1,17 @@
 import { useState } from "react";
 import { reviewDetection } from "../../api";
 
+const HIDDEN_CLASSES = new Set(["crab_pot"]);
+
 export default function ReviewQueue({ detections, onUpdated }) {
   const [busy, setBusy] = useState(null);
-  const pending = detections.filter((d) => d.review_status === "pending_review");
+  const pending = detections.filter((d) => {
+    if (HIDDEN_CLASSES.has(d.class_label)) {
+      console.warn("Unexpected class_label from backend:", d.class_label, d.detection_id);
+      return false;
+    }
+    return d.review_status === "pending_review";
+  });
 
   async function act(d, verdict) {
     setBusy(d.detection_id);
