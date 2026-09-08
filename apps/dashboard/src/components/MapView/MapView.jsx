@@ -9,7 +9,6 @@ const COLOR = {
   analyst_rejected: "#78888e",
 };
 
-// positional uncertainty grows with across-track distance
 function uncertaintyM(d) {
   const base = 40;
   const across = Math.abs(d.across_track_m ?? 0);
@@ -27,11 +26,22 @@ export default function MapView({ detections }) {
 
   const centre = located.length
     ? [located[0].latitude, located[0].longitude]
-    : [50.39, -7.71];
+    : [22.9734, 78.6569]; // India centroid
+
+  const zoom = located.length ? 12 : 5;
+
+  // force remount whenever we switch between "no detections" and "has detections"
+  // (or move between two different detection sets) so Leaflet actually re-centres
+  const mapKey = located.length ? `loc-${located[0].detection_id}` : "india-default";
 
   return (
     <>
-      <MapContainer center={centre} zoom={13} style={{ height: "480px", width: "100%" }}>
+      <MapContainer
+        key={mapKey}
+        center={centre}
+        zoom={zoom}
+        style={{ height: "640px", width: "100%" }}
+      >
         <TileLayer
           attribution='&copy; OpenStreetMap contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -41,7 +51,6 @@ export default function MapView({ detections }) {
           const pos = [d.latitude, d.longitude];
           return (
             <div key={d.detection_id}>
-              {/* the honest part: an area, not a point */}
               <Circle center={pos} radius={uncertaintyM(d)}
                       pathOptions={{ color: colour, weight: 1, fillOpacity: 0.12 }} />
               <CircleMarker center={pos} radius={5}

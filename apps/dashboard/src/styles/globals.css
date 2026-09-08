@@ -664,3 +664,20 @@ button {
   pointer-events: none;
   opacity: 0.5;
 }
+
+main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.main-panel {
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.review-panel {
+  padding: 16px;
+}
+
