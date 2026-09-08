@@ -5,6 +5,8 @@ const HIDDEN_CLASSES = new Set(["crab_pot"]);
 
 export default function ReviewQueue({ detections, onUpdated }) {
   const [busy, setBusy] = useState(null);
+  const [errorId, setErrorId] = useState(null);
+
   const pending = detections.filter((d) => {
     if (HIDDEN_CLASSES.has(d.class_label)) {
       console.warn("Unexpected class_label from backend:", d.class_label, d.detection_id);
@@ -15,9 +17,13 @@ export default function ReviewQueue({ detections, onUpdated }) {
 
   async function act(d, verdict) {
     setBusy(d.detection_id);
+    setErrorId(null);
     try {
       const updated = await reviewDetection(d.detection_id, verdict);
       onUpdated?.(updated);
+    } catch (e) {
+      console.error("Review action failed:", e);
+      setErrorId(d.detection_id);
     } finally {
       setBusy(null);
     }
@@ -48,6 +54,9 @@ export default function ReviewQueue({ detections, onUpdated }) {
                         onClick={() => act(d, "analyst_confirmed")}>Confirm</button>
                 <button disabled={busy === d.detection_id}
                         onClick={() => act(d, "analyst_rejected")}>Reject</button>
+                {errorId === d.detection_id && (
+                  <span className="row-error">Failed — try again</span>
+                )}
               </td>
             </tr>
           ))}

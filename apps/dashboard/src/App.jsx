@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Link, Navigate, Route, Routes } from "react-router-dom";
 
 import ExportPage from "./pages/ExportPage.jsx";
 import GlobalMapPage from "./pages/GlobalMapPage.jsx";
@@ -11,8 +11,8 @@ export default function App() {
       <header className="app-header">
         <span className="brand">DRISHTI</span>
         <nav>
-          <a href="/upload">Upload</a>
-          <a href="/map">Map</a>
+          <Link to="/upload">Upload</Link>
+          <Link to="/map">Map</Link>
         </nav>
       </header>
       <Routes>

@@ -18,17 +18,18 @@ function uncertaintyM(d) {
 
 export default function MapView({ detections }) {
   const located = detections.filter((d) => {
-  if (HIDDEN_CLASSES.has(d.class_label)) {
-    console.warn("Unexpected class_label from backend:", d.class_label, d.detection_id);
-    return false;
-  }
-  return d.latitude != null && d.longitude != null;
-});
+    if (HIDDEN_CLASSES.has(d.class_label)) {
+      console.warn("Unexpected class_label from backend:", d.class_label, d.detection_id);
+      return false;
+    }
+    return d.latitude != null && d.longitude != null;
+  });
+
   const centre = located.length
     ? [located[0].latitude, located[0].longitude]
     : [50.39, -7.71];
 
-    return (
+  return (
     <>
       <MapContainer center={centre} zoom={13} style={{ height: "480px", width: "100%" }}>
         <TileLayer
@@ -53,6 +54,11 @@ export default function MapView({ detections }) {
                     <>~{d.bounding_geometry.width_m.toFixed(1)} × {d.bounding_geometry.height_m?.toFixed(1)} m<br /></>
                   )}
                   <small>±{uncertaintyM(d).toFixed(0)} m · {d.ping_id}</small>
+                  {d.class_label === "mine_cylinder" && (
+                    <p className="popup-warning">
+                      ⚠ Suspected object — do not approach. Report to the maritime authority.
+                    </p>
+                  )}
                 </Popup>
               </CircleMarker>
             </div>

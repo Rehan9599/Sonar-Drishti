@@ -10,7 +10,7 @@ export async function uploadLog(file, { xtf, nav } = {}) {
   if (xtf) fd.append("xtf", xtf);
   if (nav) fd.append("nav", nav);
   const { data } = await api.post("/upload/", fd);
-  return data;
+  return data;                                  // { job_id, status }
 }
 
 export async function getJobs() {
@@ -20,17 +20,17 @@ export async function getJobs() {
 
 export async function getJob(jobId) {
   const { data } = await api.get(`/jobs/${jobId}/`);
-  return data;
+  return data;                                  // { status, progress, detection_count, ... }
 }
 
 export async function getDetections(jobId) {
   const { data } = await api.get(`/detections/${jobId}/`);
-  return data;
+  return data;                                  // Detection[]
 }
 
 export async function reviewDetection(detectionId, reviewStatus, actor = "analyst") {
   const { data } = await api.patch(`/detections/${detectionId}/review/`, {
-    review_status: reviewStatus,
+    review_status: reviewStatus,                // analyst_confirmed | analyst_rejected
     actor,
   });
   return data;
