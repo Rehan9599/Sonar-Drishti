@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { uploadLog } from "../../api";
 
-export default function UploadPanel() {
+export default function UploadPanel({ onUploaded }) {
   const [file, setFile] = useState(null);
   const [xtf, setXtf] = useState(null);
   const [nav, setNav] = useState(null);
@@ -17,7 +17,11 @@ export default function UploadPanel() {
     setErr(null);
     try {
       const { job_id } = await uploadLog(file, { xtf, nav });
-      navigate(`/jobs/${job_id}`);
+      if (onUploaded) {
+        onUploaded(job_id);
+      } else {
+        navigate(`/jobs/${job_id}`);
+      }
     } catch (e2) {
       setErr(e2?.response?.data?.detail ?? "Upload failed. Check the file and try again.");
     } finally {

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import UploadPanel from "../components/UploadPanel/UploadPanel.jsx";
 import MapView from "../components/MapView/MapView.jsx";
+import ReviewQueue from "../components/ReviewQueue/ReviewQueue.jsx";
 import { getJob, getDetections, exportUrl } from "../api";
 import { useDetectionSocket } from "../hooks/useDetectionSocket";
 
@@ -9,25 +10,46 @@ export default function UploadResultsPage() {
   const { detections: live, tilesDone, status } = useDetectionSocket(jobId);
   const [job, setJob] = useState(null);
   const [settled, setSettled] = useState([]);
+  const [overrides, setOverrides] = useState({});
 
   useEffect(() => {
     if (!jobId) return;
+    if (status === "complete" || status === "failed") return;
     const t = setInterval(() => getJob(jobId).then(setJob).catch(() => {}), 2000);
     return () => clearInterval(t);
-  }, [jobId]);
+  }, [jobId, status]);
 
   useEffect(() => {
     if (status === "complete" && jobId) getDetections(jobId).then(setSettled).catch(() => {});
   }, [status, jobId]);
 
-  const rows = settled.length ? settled : live;
+  const base = settled.length ? settled : live;
+  const rows = base.map((d) =>
+    overrides[d.detection_id] ? { ...d, ...overrides[d.detection_id] } : d
+  );
+
+  function handleUpdated(updated) {
+    setOverrides((prev) => ({ ...prev, [updated.detection_id]: updated }));
+    setSettled((prev) =>
+      prev.length
+        ? prev.map((x) => (x.detection_id === updated.detection_id ? updated : x))
+        : prev
+    );
+  }
+
+  function handleUploaded(id) {
+    setJobId(id);
+    setJob(null);
+    setSettled([]);
+    setOverrides({});
+  }
 
   return (
     <div className="dashboard-grid">
       <aside>
         <div className="sidebar-card">
           <h3>Upload sonar log</h3>
-          <UploadPanel onUploaded={(id) => setJobId(id)} />
+          <UploadPanel onUploaded={handleUploaded} />
         </div>
 
         <div className="sidebar-card">
@@ -80,15 +102,16 @@ export default function UploadResultsPage() {
 
       <main>
         <div className="main-panel" style={{ marginBottom: 0 }}>
-          {!jobId ? (
-            <div className="main-panel-empty">
-              <h2 style={{ margin: 0, color: "#17212b" }}>No job yet</h2>
-              <p>Upload a sonar file to start detection. Results will appear here once processing begins.</p>
-            </div>
-          ) : (
-            <MapView detections={rows} />
-          )}
+          <MapView detections={rows} />
+        </div>
 
+        {jobId && (
+          <div className="main-panel review-panel">
+            <ReviewQueue detections={rows} onUpdated={handleUpdated} />
+          </div>
+        )}
+
+        <div className="main-panel export-panel">
           <div className="export-bar">📄 EXPORT REPORT</div>
           <div className={`export-grid ${!jobId ? "disabled" : ""}`}>
             <a href={jobId ? exportUrl(jobId, "json") : "#"} download>JSON Data (.json) ⬇</a>
