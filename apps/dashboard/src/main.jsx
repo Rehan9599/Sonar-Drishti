@@ -1,19 +1,14 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import "leaflet/dist/leaflet.css";
 import "./styles/globals.css";
-
-
-function App() {
-  return (
-    <main>
-      <h1>DRISHTI</h1>
-      <p>Underwater sonar detection dashboard</p>
-    </main>
-  );
-}
+import App from "./App.jsx";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <App />
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
   </React.StrictMode>
 );
