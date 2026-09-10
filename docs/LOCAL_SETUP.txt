@@ -1,0 +1,329 @@
+========================================================================
+DRISHTI — LOCAL SETUP TO TEST + DEVELOP BACKEND & FRONTEND
+========================================================================
+Machine assumed: Windows 11, repo at d:\Sonar-Drishti
+Shells: Git Bash for POSIX commands, PowerShell where noted.
+
+This is everything needed to bring up the full stack (Postgres + Redis +
+Django API + Celery worker + React dashboard) on a machine that did NOT
+build it.
+
+
+========================================================================
+0. WHAT THIS MACHINE ALREADY HAS  (verified — do NOT redo)
+========================================================================
+  [OK] Python 3.13.9 venv at .venv\  with ALL backend deps installed:
+       Django 5.2, DRF, daphne, celery, channels, channels_redis,
+       psycopg2, python-decouple, django-cors-headers,
+       onnxruntime, numpy, opencv, scikit-learn
+       -> `python manage.py check` passes, 0 issues
+  [OK] ML models present:
+       ml/models/exported/best_detector.onnx      (44.8 MB, FP32)
+       ml/models/exported/calibrator.pkl          (per-class Platt)
+  [OK] Node v22.16.0
+  [OK] A PostgreSQL server is running on port 5432
+
+  MISSING / BROKEN — the rest of this doc fixes these:
+  [ ] pnpm            (not installed)
+  [ ] node_modules    (frontend never installed — 0 packages)
+  [ ] Redis           (nothing on port 6379 — Celery + WebSocket need it)
+  [ ] Postgres creds  (the 5432 server rejects drishti/drishti — it is a
+                       different local Postgres, not this project's)
+  [ ] .env            (only .env.example exists; .env is gitignored so it
+                       will NOT arrive from git — you must create it)
+  [ ] Docker          (not installed — only needed for PATH A below)
+
+
+========================================================================
+1. CHOOSE A PATH
+========================================================================
+PATH A — Docker Desktop        <- RECOMMENDED. One command brings up
+                                  Postgres + Redis + API + worker with
+                                  correct config. Matches deployment.
+PATH B — Native Windows         <- No Docker. You install Redis yourself,
+                                  fix Postgres yourself, run 4 processes
+                                  by hand. More moving parts.
+
+Frontend is run the same way in BOTH paths (Node, not Docker).
+
+
+========================================================================
+PATH A — DOCKER  (do this if you can install Docker Desktop)
+========================================================================
+
+A1. Install Docker Desktop for Windows
+    https://www.docker.com/products/docker-desktop/
+    Enable the WSL2 backend when prompted. Reboot. Confirm:
+        docker --version
+        docker compose version
+
+A2. Create the env file (from repo root)
+        cp .env.example .env
+    The defaults in .env.example already match compose.yaml
+    (drishti / drishti / drishti). No edits needed for local.
+
+A3. Bring up the backend stack
+        docker compose up --build
+    This starts 4 containers:
+        postgres  (5432)  - project DB, correct creds, persistent volume
+        redis     (6379)  - Celery broker + Channels layer
+        web       (8000)  - Django ASGI (daphne)
+        worker            - Celery worker, imports run_pipeline() in-process,
+                            DRISHTI_MODEL already pointed at the ONNX
+    Wait for "web" to log that it is listening on 0.0.0.0:8000.
+
+    NOTE: port 5432 is already taken on your machine by another Postgres.
+    Either stop that service first (PowerShell, admin):
+        Get-Service *postg* ; Stop-Service postgresql-x64-16   # name will vary
+    OR remap the container in compose.yaml:  "5433:5432"  and set
+    POSTGRES_PORT=5433 in .env.
+
+A4. First-run DB setup (new terminal, repo root)
+        docker compose exec web python manage.py migrate
+        docker compose exec web python manage.py createsuperuser
+
+A5. Health check
+        curl http://localhost:8000/api/health/
+        -> {"status": "ok", "service": "drishti-api"}
+
+Then jump to section 3 (frontend) and section 4 (smoke test).
+
+Stop everything:   docker compose down
+Wipe DB + media:   docker compose down -v
+
+
+========================================================================
+PATH B — NATIVE WINDOWS  (no Docker)
+========================================================================
+
+B1. Redis  (Celery broker AND WebSocket layer — nothing works without it)
+    There is no official Windows Redis. Pick one:
+      (a) Memurai (Redis-compatible, native Windows service) — EASIEST
+          https://www.memurai.com/  -> installs a service on 6379
+      (b) WSL2 Ubuntu:
+          wsl --install
+          then inside Ubuntu:  sudo apt install redis-server
+                               sudo service redis-server start
+          (listens on 6379, reachable from Windows as localhost)
+      (c) Docker just for Redis:
+          docker run -d --name redis -p 6379:6379 redis:7-alpine
+    Verify from Git Bash:
+          python -c "import redis; redis.Redis().ping()"   # -> True
+
+B2. PostgreSQL  (a server is running on 5432 but rejects this project)
+    Create the role + database this project expects. Open "SQL Shell (psql)"
+    or pgAdmin as the postgres superuser and run:
+
+        CREATE ROLE drishti WITH LOGIN PASSWORD 'drishti';
+        CREATE DATABASE drishti OWNER drishti;
+        GRANT ALL PRIVILEGES ON DATABASE drishti TO drishti;
+
+    If you do not know the existing server's superuser password, install a
+    fresh PostgreSQL 16, set it on a free port (e.g. 5433), and put that
+    port in .env (POSTGRES_PORT=5433).
+
+    Verify from Git Bash:
+        PGPASSWORD=drishti psql -h localhost -U drishti -d drishti -c "\conninfo"
+
+B3. Env file (repo root)
+        cp .env.example .env
+    Edit .env only if you changed the Postgres port:
+        POSTGRES_PORT=5433
+    Leave REDIS_URL=redis://localhost:6379/0 as-is.
+
+B4. Python env — already installed, just confirm it resolves
+        source .venv/Scripts/activate      # Git Bash
+        # or  .venv\Scripts\Activate.ps1   # PowerShell
+        cd apps/api
+        python manage.py check              # must say 0 issues
+
+B5. First-run DB setup
+        python manage.py migrate
+        python manage.py createsuperuser
+
+B6. Run the backend — TWO processes, two terminals, both from apps/api
+    with the venv active and repo root on PYTHONPATH.
+
+    Terminal 1 — ASGI web server (REST + WebSocket):
+        cd d:/Sonar-Drishti/apps/api
+        export PYTHONPATH=d:/Sonar-Drishti
+        python -m daphne -b 0.0.0.0 -p 8000 drishti_api.asgi:application
+
+    Terminal 2 — Celery worker (runs the ML pipeline per job):
+        cd d:/Sonar-Drishti/apps/api
+        export PYTHONPATH=d:/Sonar-Drishti
+        export DRISHTI_MODEL=d:/Sonar-Drishti/ml/models/exported/best_detector.onnx
+        export DRISHTI_CALIBRATOR=d:/Sonar-Drishti/ml/models/exported/calibrator.pkl
+        celery -A drishti_api worker -l info -P solo
+        # -P solo is REQUIRED on Windows (prefork pool is broken there)
+
+B7. Health check
+        curl http://localhost:8000/api/health/
+
+
+========================================================================
+2. NOTES THAT APPLY TO BOTH PATHS
+========================================================================
+  - Redis is used for TWO things: the Celery task broker AND the Channels
+    layer that pushes per-tile detections over WebSocket. If Redis is
+    down: uploads accept but jobs never run, and the live map never
+    updates.
+  - The worker does NOT need torch. It imports ml.inference.pipeline
+    .run_pipeline() and runs best_detector.onnx via onnxruntime. Keep
+    DRISHTI_MODEL pointed at the .onnx, not the .pt.
+  - MEDIA_ROOT is apps/api/media/ — uploaded logs and tiles land there.
+  - ALLOWED_HOSTS in settings is ['localhost','127.0.0.1']. Fine for local.
+
+
+========================================================================
+3. FRONTEND  (same in both paths)
+========================================================================
+
+3a. Install pnpm (Node is already present)
+        npm install -g pnpm
+        pnpm --version
+
+3b. Install workspace deps (from repo root — installs api + dashboard)
+        cd d:/Sonar-Drishti
+        pnpm install
+
+3c. Run the dashboard dev server
+        pnpm --filter @drishti/dashboard dev
+        # opens http://localhost:5173
+    Vite proxies /api and /ws to http://localhost:8000, so the backend
+    must be running on 8000 (sections A3 / B6).
+
+3d. Frontend WITHOUT a backend (isolated UI testing)
+        # PowerShell:
+        $env:VITE_MOCK = "1"; pnpm --filter @drishti/dashboard dev
+        # serves hard-coded mock detections from src/api.js — the map,
+        # review queue and overlays all render with no API running.
+
+3e. Production build check
+        pnpm --filter @drishti/dashboard build
+        pnpm --filter @drishti/dashboard preview   # serves the built dist/
+
+
+========================================================================
+4. END-TO-END SMOKE TEST  (prove the whole chain works)
+========================================================================
+Backend on 8000, worker running, Redis up, frontend on 5173.
+
+4a. Health
+        curl http://localhost:8000/api/health/
+
+4b. Upload a sonar image to create a job
+        curl -F "file=@d:/Sonar-Drishti/demo/tiles/<pick-one>.jpg" \
+             http://localhost:8000/api/upload/
+        # -> {"job_id": "...."}   (note the id)
+
+4c. Poll the job
+        curl http://localhost:8000/api/jobs/<job_id>/
+        # status goes queued -> running -> completed, progress 0 -> 1
+
+4d. Get detections
+        curl http://localhost:8000/api/detections/<job_id>/
+
+4e. Export
+        curl "http://localhost:8000/api/export/<job_id>/?format=geojson"
+        curl "http://localhost:8000/api/export/<job_id>/?format=csv"
+
+4f. In the browser (http://localhost:5173): upload the same file via the
+    UI, watch the review queue populate live (that is the WebSocket +
+    Redis Channels layer working), open a detection, confirm/reject it,
+    then export from the Export page.
+
+If 4f updates live -> Redis, Channels, Celery, the ORM writes and the WS
+consumer are ALL wired correctly.
+
+
+========================================================================
+5. RUNNING THE TEST SUITES
+========================================================================
+  ML (works today, no infra needed):
+        source .venv/Scripts/activate
+        cd d:/Sonar-Drishti
+        python -m pytest ml/tests -q            # 6 pass
+
+  Backend (needs a DB; test file is currently EMPTY — see section 7):
+        cd d:/Sonar-Drishti/apps/api
+        python -m pytest -q
+
+  Frontend:
+        pnpm --filter @drishti/dashboard test   # vitest, 1 test today
+
+  Everything via turbo (after pnpm install):
+        pnpm test        # runs api + dashboard test scripts
+        pnpm lint        # NOTE: api lint needs `pip install ruff` first
+
+
+========================================================================
+6. THE DEV LOOP  (making changes and re-verifying)
+========================================================================
+  Backend code change:
+    - daphne auto-reloads on .py save (dev). Celery does NOT — restart the
+      worker terminal after changing tasks.py / pipeline code.
+    - Model change:      python manage.py makemigrations && migrate
+    - Before committing:  python manage.py check
+                          python manage.py makemigrations --check --dry-run
+                          python -m pytest -q
+
+  Frontend code change:
+    - Vite hot-reloads on save.
+    - Before committing:  pnpm --filter @drishti/dashboard lint
+                          pnpm --filter @drishti/dashboard build
+                          pnpm --filter @drishti/dashboard test
+
+  Committing (branch chore/publish-dataset is merged to main now; work on
+  a fresh branch off main):
+        git checkout main && git pull
+        git checkout -b feat/<thing>
+
+
+========================================================================
+7. KNOWN ISSUES TO FIX WHILE YOU ARE IN HERE
+========================================================================
+  1. apps/api/tests/test_detections_api.py is EMPTY (0 lines).
+     The backend has zero automated tests. `pnpm test` runs nothing for
+     the API. This should be written before deploy.
+
+  2. apps/api/detections/serializers.py — DetectionSerializer has
+        exclude = ("job", "created_at")
+     which drops job_id. The frozen 13-field contract lists job_id as
+     field #2, and src/api.js mock data includes it. Frontend code that
+     reads detection.job_id currently gets undefined against the real API.
+     Fix: switch to an explicit `fields = (...)` that includes "job_id",
+     or add  job_id = serializers.UUIDField(source="job_id", read_only=True).
+
+  3. Local ml/data/splits still contains crab_pot (262 test instances).
+     The shipped model is 4-class and the published HF dataset is 5,205
+     tiles (crab_pot removed). Local training data (6,405) != published.
+     Not a blocker for backend/frontend testing; note it before any
+     retrain or eval you quote.
+
+  4. CPU latency here measured 97–106 ms/tile (ONNX FP32) vs the deck's
+     "~90 ms". It is machine-dependent. If a judge benchmarks on this
+     box the number will be slightly over the 100 ms target.
+
+  5. The acoustic-shadow check only runs when per-ping geometry
+     (altitude, slant range) is supplied. Tile-only uploads through the
+     dashboard skip it silently — detections are calibrated but not
+     shadow-verified. Full-transect XTF uploads do run it.
+
+
+========================================================================
+8. QUICK REFERENCE — PORTS & PROCESSES
+========================================================================
+  5432   PostgreSQL           (Docker container OR native/Memurai)
+  6379   Redis                (Docker / Memurai / WSL)
+  8000   Django ASGI (daphne) REST + ws://localhost:8000/ws/jobs/<id>/
+   -     Celery worker        (no port; talks to Redis + Postgres)
+  5173   Vite dev server      (proxies /api and /ws to :8000)
+  4173   Vite preview         (production build)
+
+  Minimum to test end-to-end: Postgres + Redis + daphne + celery + vite
+  = 5 processes (or 4 containers + vite with Docker).
+
+========================================================================
+END
+========================================================================

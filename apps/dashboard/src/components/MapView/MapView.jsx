@@ -1,4 +1,7 @@
+import { useState } from "react";
 import { Circle, CircleMarker, MapContainer, Popup, TileLayer } from "react-leaflet";
+
+import DetectionImageModal from "../DetectionImage/DetectionImageModal.jsx";
 
 const HIDDEN_CLASSES = new Set(["crab_pot"]);
 
@@ -16,6 +19,8 @@ function uncertaintyM(d) {
 }
 
 export default function MapView({ detections }) {
+  const [preview, setPreview] = useState(null);
+
   const located = detections.filter((d) => {
     if (HIDDEN_CLASSES.has(d.class_label)) {
       console.warn("Unexpected class_label from backend:", d.class_label, d.detection_id);
@@ -40,7 +45,7 @@ export default function MapView({ detections }) {
         key={mapKey}
         center={centre}
         zoom={zoom}
-        style={{ height: "640px", width: "100%" }}
+        style={{ height: "100%", width: "100%" }}
       >
         <TileLayer
           attribution='&copy; OpenStreetMap contributors'
@@ -54,7 +59,8 @@ export default function MapView({ detections }) {
               <Circle center={pos} radius={uncertaintyM(d)}
                       pathOptions={{ color: colour, weight: 1, fillOpacity: 0.12 }} />
               <CircleMarker center={pos} radius={5}
-                            pathOptions={{ color: colour, fillColor: colour, fillOpacity: 0.9 }}>
+                            pathOptions={{ color: colour, fillColor: colour, fillOpacity: 0.9 }}
+                            eventHandlers={{ mouseover: (e) => e.target.openPopup() }}>
                 <Popup>
                   <strong>{d.class_label}</strong><br />
                   {d.confidence_score?.toFixed(1)}% · {d.review_status}<br />
@@ -68,6 +74,10 @@ export default function MapView({ detections }) {
                       ⚠ Suspected object — do not approach. Report to the maritime authority.
                     </p>
                   )}
+                  <button type="button" className="popup-img-btn"
+                          onClick={() => setPreview(d)}>
+                    Show detected image
+                  </button>
                 </Popup>
               </CircleMarker>
             </div>
@@ -75,8 +85,13 @@ export default function MapView({ detections }) {
         })}
       </MapContainer>
       <p className="map-legend">
-        Circles show positional uncertainty. Advisory only — not a navigational chart.
+        Circles show positional uncertainty. Hover a contact for details. Advisory only —
+        not a navigational chart.
       </p>
+
+      {preview && (
+        <DetectionImageModal detection={preview} onClose={() => setPreview(null)} />
+      )}
     </>
   );
 }

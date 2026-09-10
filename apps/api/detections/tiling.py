@@ -12,7 +12,7 @@ class ImageTile:
 
 
 def tile_offsets(width: int, height: int, tile_size: int = 640,
-                 stride: int = 512) -> list[tuple[int, int]]:
+                 stride: int = 320) -> list[tuple[int, int]]:
     if tile_size <= 0 or stride <= 0:
         raise ValueError("tile_size and stride must be positive")
 
@@ -30,7 +30,7 @@ def tile_offsets(width: int, height: int, tile_size: int = 640,
 
 
 def write_tiles(image_path: str | Path, output_dir: str | Path,
-                tile_size: int = 640, stride: int = 512) -> list[ImageTile]:
+                tile_size: int = 640, stride: int = 320) -> list[ImageTile]:
     image = cv2.imread(str(image_path), cv2.IMREAD_COLOR)
     if image is None:
         raise FileNotFoundError(f"could not read image: {image_path}")

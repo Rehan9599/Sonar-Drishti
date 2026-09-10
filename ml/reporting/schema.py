@@ -72,8 +72,8 @@ class DetectionRecord:
             "job_id": self.job_id,
             "ping_id": self.ping_id,
             "timestamp": self.timestamp,
-            "latitude": round(self.latitude, 7),
-            "longitude": round(self.longitude, 7),
+            "latitude": round(self.latitude, 7) if self.latitude is not None else None,
+            "longitude": round(self.longitude, 7) if self.longitude is not None else None,
             "class_label": self.class_label,
             "confidence_score": round(self.confidence_score, 1),
             "bounding_geometry": {

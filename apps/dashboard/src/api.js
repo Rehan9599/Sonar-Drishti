@@ -104,3 +104,10 @@ export function exportUrl(jobId, format = "json") {
   const base = import.meta.env.VITE_API_BASE || "/api";
   return `${base}/export/${jobId}/?format=${format}`;
 }
+// Tile crop for a single detection. The backend does not serve this yet —
+// GET /api/detections/<id>/image/ is the agreed contract; until it exists the
+// UI shows a "not available yet" state instead of a broken image.
+export function detectionImageUrl(detectionId) {
+  const base = import.meta.env.VITE_API_BASE || "/api";
+  return `${base}/detections/${detectionId}/image/`;
+}

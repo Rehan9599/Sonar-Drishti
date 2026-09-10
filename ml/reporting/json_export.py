@@ -43,7 +43,11 @@ def to_geojson(records: list[dict]) -> dict:
         "features": [
             {
                 "type": "Feature",
-                "geometry": {"type": "Point", "coordinates": [r["longitude"], r["latitude"]]},
+                "geometry": (
+                    {"type": "Point", "coordinates": [r["longitude"], r["latitude"]]}
+                    if r.get("longitude") is not None and r.get("latitude") is not None
+                    else None
+                ),
                 "properties": {
                     "detection_id": r["detection_id"],
                     "class_label": r["class_label"],

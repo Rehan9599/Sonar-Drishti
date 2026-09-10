@@ -34,7 +34,7 @@ from ml.geotagging.metadata_parser import NavigationTable
 from ml.geotagging.xtf_reader import XtfNav
 from ml.reporting.json_export import write_json, write_geojson
 from ml.reporting.csv_export import write_csv
-from ml.reporting.schema import new_job_id
+from ml.reporting.schema import DetectionRecord, REVIEW_FLOOR, new_job_id
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -112,9 +112,29 @@ def run_pipeline(
         {"class_label": d["class_label"], "confidence_score": d["confidence_score"], "bbox": d["bbox"]}
         for d in scored
     ]
-    records = geotag(dets_for_geo, source_file, img_w, img_h,
-                     xtf=xtf, ping_index=ping_index, nav=nav)
-    logger.info(f"geotag: {len(records)} report records")
+    if xtf or ping_index or nav:
+        records = geotag(dets_for_geo, source_file, img_w, img_h,
+                         xtf=xtf, ping_index=ping_index, nav=nav)
+        logger.info(f"geotag: {len(records)} report records")
+    else:
+        # no nav source (plain dashboard image upload) - emit ungeotagged
+        # records: class/confidence/bbox kept, lat/lon null. The data model,
+        # the map ("no coordinates" state) and the CSV/GeoJSON writers all
+        # already tolerate null coordinates.
+        job_id = new_job_id()
+        records = []
+        for d in dets_for_geo:
+            if float(d["confidence_score"]) < REVIEW_FLOOR:
+                continue
+            x1, y1, x2, y2 = d["bbox"]
+            records.append(DetectionRecord(
+                latitude=None, longitude=None,
+                class_label=d["class_label"],
+                confidence_score=float(d["confidence_score"]),
+                bbox=[x1, y1, x2, y2], source_file=source_file,
+                ping_number=int((y1 + y2) / 2), job_id=job_id, side="",
+            ).to_dict())
+        logger.info(f"no nav source: {len(records)} ungeotagged records")
 
     job_id = records[0]["job_id"] if records else new_job_id()
     return {

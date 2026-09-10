@@ -681,3 +681,264 @@ main {
   padding: 16px;
 }
 
+
+/* ---- session job list (UploadResultsPage) ---- */
+.badge.queued    { background: #eef1f4; color: #3a4a54; }
+.badge.running   { background: #d9f0ff; color: #075985; }
+.badge.completed { background: #dff6e8; color: #176b3a; }
+
+.link-btn {
+  background: none;
+  border: none;
+  color: #0d7490;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+.link-btn:hover { text-decoration: underline; }
+
+.job-list {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.job-list li {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border: 1px solid #e4ebee;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.job-list li:hover { background: #f5f8f9; }
+.job-list li.active { border-color: #0d7490; background: #eefafd; }
+.job-list .job-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.job-list .job-count {
+  font-weight: 700;
+  color: #17212b;
+  min-width: 20px;
+  text-align: right;
+}
+.job-list .badge { padding: 3px 8px; font-size: 10px; }
+
+/* ============ single-viewport results layout ============ */
+.dashboard-grid {
+  height: calc(100vh - 66px);      /* fill viewport under the app header */
+  max-width: none;
+  padding: 16px;
+  gap: 16px;
+  align-items: stretch;
+  overflow: hidden;
+}
+.dashboard-grid > aside {
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 4px;
+}
+
+main.results-main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.map-panel {
+  flex: 1 1 auto;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+}
+.map-panel .leaflet-container { flex: 1 1 auto; min-height: 0; }
+.map-panel .map-legend {
+  flex: 0 0 auto;
+  margin: 6px 12px 8px;
+  font-size: 12px;
+}
+
+.results-bottom {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 16px;
+  height: 264px;
+}
+.results-bottom > .main-panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* review queue fills its cell, scrolls internally */
+.queue-cell { overflow-y: auto; }
+.results-bottom .review-queue {
+  margin: 0;
+  padding: 14px 18px;
+  box-shadow: none;
+  border-radius: 0;
+}
+.results-bottom .review-queue h3 { margin-top: 0; }
+.results-bottom .review-queue table { margin-top: 8px; }
+.results-bottom .review-queue th,
+.results-bottom .review-queue td { padding: 7px 8px; font-size: 13px; }
+
+/* export cell: compact, single column */
+.export-cell .export-grid {
+  grid-template-columns: 1fr;
+  gap: 10px;
+  padding: 14px 16px;
+  overflow-y: auto;
+}
+.export-cell .export-grid a { padding: 10px 14px; font-size: 13px; }
+.export-cell .hint { padding: 0 16px 12px; margin: 0; font-size: 12px; }
+
+@media (max-width: 900px) {
+  .dashboard-grid { height: auto; overflow: visible; }
+  main.results-main { overflow: visible; }
+  .map-panel { min-height: 360px; }
+  .results-bottom { grid-template-columns: 1fr; height: auto; }
+  .results-bottom > .main-panel { min-height: 200px; }
+}
+
+/* ===== review queue: pinned header, rows scroll (was clipping at the bottom) ===== */
+.results-bottom > .queue-cell { overflow: hidden; }   /* beat the generic panel rule */
+.results-bottom .review-queue {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.results-bottom .review-queue h3 {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  margin: 0 0 8px;
+}
+.queue-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0 -18px -14px;      /* let rows run full-bleed inside the card */
+  padding: 0 18px;
+}
+.queue-scroll table { margin-top: 0; }
+.queue-scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #fff;
+  box-shadow: inset 0 -1px 0 #e5eaed;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  color: #71808a;
+}
+.queue-scroll tbody tr:hover { background: #f6fafb; }
+.queue-scroll td code { font-size: 12px; color: #52636c; }
+.queue-empty { flex: 1 1 auto; display: flex; align-items: center; margin: 0; }
+
+.queue-actions { white-space: nowrap; }
+.ghost-btn {
+  background: #eef4f6 !important;
+  color: #0d7490 !important;
+  border: 1px solid #d5e3e8 !important;
+}
+.ghost-btn:hover { background: #e2eff3 !important; }
+.row-error { color: #9b1c1c; font-size: 12px; margin-left: 6px; }
+
+/* ===== "Show detected image" — popup button + modal ===== */
+.popup-img-btn {
+  margin-top: 10px;
+  width: 100%;
+  border: 1px solid #d5e3e8;
+  background: #eef4f6;
+  color: #0d7490;
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-weight: 700;
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.popup-img-btn:hover { background: #e2eff3; }
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(11, 31, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  padding: 24px;
+}
+.modal-card {
+  background: #fff;
+  border-radius: 14px;
+  width: min(560px, 100%);
+  max-height: 86vh;
+  overflow-y: auto;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.3);
+}
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e9eef0;
+}
+.modal-title { display: flex; align-items: center; gap: 10px; font-size: 16px; }
+.modal-close {
+  border: 0;
+  background: none;
+  font-size: 24px;
+  line-height: 1;
+  color: #71808a;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.modal-close:hover { color: #17212b; }
+
+.modal-image {
+  background: #101a1f;
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.modal-image img { max-width: 100%; max-height: 46vh; border-radius: 6px; }
+.modal-note { color: #9fb0b6; font-size: 13px; margin: 0; }
+.modal-missing { text-align: center; color: #c3d0d4; max-width: 400px; }
+.modal-missing-title { font-weight: 700; color: #fff; margin: 0 0 8px; font-size: 14px; }
+.modal-missing p { font-size: 12.5px; line-height: 1.55; margin: 0; }
+.modal-missing code { background: #1e2c33; padding: 1px 5px; border-radius: 3px; }
+.modal-bbox { margin-top: 10px !important; font-family: monospace; color: #8fa3aa; }
+
+.modal-meta {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 20px;
+  margin: 0;
+  padding: 16px 20px;
+}
+.modal-meta dt {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  color: #71808a;
+  margin-bottom: 3px;
+}
+.modal-meta dd { margin: 0; font-size: 13px; color: #17212b; }

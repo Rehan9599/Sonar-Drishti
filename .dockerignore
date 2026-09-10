@@ -1,0 +1,27 @@
+# ---- heavy dirs the API/worker image never needs ----
+.venv/
+**/node_modules/
+**/__pycache__/
+**/.pytest_cache/
+.git/
+.runlogs/
+runs/
+notebooks/
+demo/
+docs/
+weights/
+yolov8s.pt
+
+# ---- ML: keep code + the two exported artifacts, drop everything else ----
+ml/data/
+ml/models/checkpoints/
+ml/models/exported/best_detector_fp16.onnx
+ml/models/exported/best_detector_int8.onnx
+ml/notebooks/
+ml/_archive_fls_seg/
+ml/tests/
+
+# ---- frontend build output / misc ----
+apps/dashboard/dist/
+**/.DS_Store
+*.log

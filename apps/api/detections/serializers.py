@@ -6,7 +6,13 @@ from .models import AuditLogEntry, Detection, DetectionJob
 class DetectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Detection
-        exclude = ("job", "created_at")
+        # explicit — the frozen 13-field detection contract, job_id included
+        fields = (
+            "detection_id", "job_id", "ping_id", "timestamp",
+            "latitude", "longitude", "class_label", "confidence_score",
+            "bounding_geometry", "across_track_m", "side",
+            "review_status", "source_file",
+        )
 
 
 class AuditLogEntrySerializer(serializers.ModelSerializer):
